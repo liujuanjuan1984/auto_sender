@@ -1,2 +1,9 @@
 # auto_sender
-auto sender: post or update data of local dir to rum group(s)
+
+适用于可公开的数据。比如摘抄本，个人博客，笔记等。
+
+把本地文件夹与 rum group 形成映射；文件夹下的每个文本文件，将映射一条 trx，自动提交/更新/同步。
+
+存储在 rum group 的数据，既是可靠的、分布式的数据备份，可一键恢复到新的指定目录或新设备上；也可以作为产品的数据源，比如论坛的主帖，博客主的个人文集，被运用到 port.base.one 等相似的站点。
+
+采用 python 实现，偏后端，作为 demo 而存在。
