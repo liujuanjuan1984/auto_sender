@@ -12,6 +12,7 @@ import os
 import time
 
 from mininode import MiniNode, create_private_key
+from mininode.crypto import private_key_to_pubkey
 
 logger = logging.getLogger(__name__)
 logger.setLevel(level=logging.INFO)
@@ -69,6 +70,7 @@ class AutoSender:
         rum_group_seed: str,
         private_key: str = None,
         filetypes=(".md", ".txt"),
+        rum_version: int = 2,
     ):
         """
         Args:
@@ -76,12 +78,15 @@ class AutoSender:
             rum_group_seed (str): the seed of the rum group, which is used to send file as trx
             private_key (str): the private key of the rum group. If it is None, the private key will be generated automatically.
             filetypes (tuple, optional): the filetypes that will be sent to rum group. Defaults to (".md", ".txt").
+            rum_version (int, optional): the version of rum, 1 or 2. Defaults to 2.
         """
         self.filetypes = filetypes
         self.local_dir_path = local_dir_path
         self.private_key = private_key
         self.seed = rum_group_seed
-        self.rum = MiniNode(rum_group_seed, version=2)
+        if rum_version not in (1, 2):
+            raise Exception("rum_version must be 1 or 2")
+        self.rum = MiniNode(rum_group_seed, version=rum_version)
         self.info_file = self.init_infofile(self.local_dir_path)
         self.config_file = self.init_configfile(self.local_dir_path)
 
@@ -204,14 +209,15 @@ class AutoSender:
                         f.write(content)
                     logger.info("download %s to %s is finished", name, opath)
 
-    def download_by_group(self, todir: str = None):
+    def download_by_group(self, todir: str = None, senders: list = None):
         """download files from rum group without info_file"""
         if todir is None:
             todir = self.local_dir_path
         infofile = self.init_infofile(todir)
         config_file = self.init_configfile(todir)
         info = read_json_file(infofile)
-        trxs = self.rum.api.get_all_contents()
+        senders = senders or [private_key_to_pubkey(self.private_key)]
+        trxs = self.rum.api.get_all_contents(senders=senders)
         for trx in trxs:
             trx_id = trx["TrxId"]
             try:
@@ -240,3 +246,7 @@ class AutoSender:
             elif trx_id not in info[relpath]:
                 info[relpath].append(trx_id)
                 write_json_file(infofile, info)
+
+    def update_profile(self, name, image):
+        resp = self.rum.api.update_profile(self.private_key, name=name, image=image)
+        logger.info("update profile %s", resp)
