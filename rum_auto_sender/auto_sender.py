@@ -1,8 +1,5 @@
 """
 AutoSender is a tool to send files as trxs to rum group, and download files from rum group.
-
-dirpath: rum group
-filepath: rum trx
 """
 
 import datetime
@@ -16,9 +13,7 @@ from mininode.crypto import private_key_to_pubkey
 
 logger = logging.getLogger(__name__)
 logger.setLevel(level=logging.INFO)
-handler = logging.FileHandler(
-    f"auto_sender_{datetime.date.today()}.log", encoding="utf-8"
-)
+handler = logging.FileHandler(f"auto_sender_{datetime.date.today()}.log", encoding="utf-8")
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
@@ -63,6 +58,12 @@ def init_rumdir(dirpath):
     return rum_dir
 
 
+def is_content_same(content1, content2):
+    a = content1.replace(" ", "").replace("\r", "").replace("\t", "")
+    b = content2.replace(" ", "").replace("\r", "").replace("\t", "")
+    return a == b
+
+
 class AutoSender:
     def __init__(
         self,
@@ -71,6 +72,7 @@ class AutoSender:
         private_key: str = None,
         filetypes=(".md", ".txt"),
         rum_version: int = 2,
+        **kwargs,
     ):
         """
         Args:
@@ -161,7 +163,7 @@ class AutoSender:
             except:
                 logger.error("get trx %s error %s", trx_id, trx)
                 return
-            if contentd != content:
+            if not is_content_same(contentd, content):
                 resp = self.rum.api.edit_trx(
                     self.private_key,
                     content=content,
@@ -200,7 +202,7 @@ class AutoSender:
                     os.makedirs(odir)
                 if os.path.exists(opath):
                     contentd = read_file(opath)
-                    if contentd != content:
+                    if not is_content_same(contentd, content):
                         flag = True
                 else:
                     flag = True
@@ -231,7 +233,7 @@ class AutoSender:
                 os.makedirs(odir)
             if os.path.exists(opath):
                 contentd = read_file(opath)
-                if contentd != content:
+                if not is_content_same(contentd, content):
                     flag = True
             else:
                 flag = True

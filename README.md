@@ -21,3 +21,13 @@ auto_sender 的作用是：
 采用 python 实现，偏后端，作为 demo 而存在，目前几乎没有图形交互。
 
 换言之，rum group 的数据可以采用任何已有的产品应用来渲染，这个 bot 只处理原始数据与 rum group 的映射与同步。
+
+### 安装
+
+```sh
+pip install rum_auto_sender
+```
+
+### 使用
+
+[example](./example/bot_blog.py)
